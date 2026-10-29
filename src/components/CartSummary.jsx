@@ -1,41 +1,43 @@
-import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
+import { couponLabel } from './couponLabel.js'
 
 const won = (n) => n.toLocaleString('ko-KR') + '원'
 
-// 상품금액 / 쿠폰 입력 / 할인(-20,000원 (50%)) / 결제 금액
+// 쿠폰함 / 상품금액 / 할인(-20,000원 (50%)) / 결제 금액
 export default function CartSummary() {
-  const { items, coupon, applyCoupon, removeCoupon, subtotal, discount, discountPercent, total } = useCart()
-  const [code, setCode] = useState('')
-  const [msg, setMsg] = useState(null) // { ok, message }
-  const [busy, setBusy] = useState(false)
-
-  const onApply = async (e) => {
-    e.preventDefault()
-    if (!code.trim()) return
-    setBusy(true)
-    const result = await applyCoupon(code)
-    setBusy(false)
-    setMsg(result)
-    if (result.ok) setCode('')
-  }
+  const { items, coupon, selectCoupon, myCoupons, setDrawerOpen, subtotal, discount, discountPercent, total } = useCart()
 
   if (items.length === 0) return null
 
   return (
     <div className="summary">
-      {coupon ? (
-        <div className="coupon applied">
-          <span>🎟️ {coupon.code}</span>
-          <button className="linkbtn" onClick={() => { removeCoupon(); setMsg(null) }}>삭제</button>
-        </div>
-      ) : (
-        <form className="coupon" onSubmit={onApply}>
-          <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="쿠폰 코드" aria-label="쿠폰 코드" />
-          <button className="btn ghost" disabled={busy || !code.trim()}>적용</button>
-        </form>
-      )}
-      {msg && !coupon && <p className={msg.ok ? 'ok' : 'error'}>{msg.message}</p>}
+      <div className="wallet">
+        <div className="wallet-head">🎟️ 쿠폰함 <span>{myCoupons.length}</span></div>
+        {myCoupons.length === 0 ? (
+          <p className="muted">
+            받은 쿠폰이 없습니다. <Link to="/shop" onClick={() => setDrawerOpen(false)}>특산품 페이지</Link>에서 쿠폰을 받아보세요.
+          </p>
+        ) : (
+          <ul>
+            {myCoupons.map((c) => (
+              <li key={c.code}>
+                <label className={coupon?.code === c.code ? 'on' : ''}>
+                  <input
+                    type="radio"
+                    name="coupon"
+                    checked={coupon?.code === c.code}
+                    onChange={() => selectCoupon(c)}
+                  />
+                  <span className="cinfo"><strong>{c.code}</strong><small>{c.description}</small></span>
+                  <span className="cval">{couponLabel(c)}</span>
+                </label>
+              </li>
+            ))}
+            {coupon && <li><button className="linkbtn" onClick={() => selectCoupon(null)}>쿠폰 사용 안 함</button></li>}
+          </ul>
+        )}
+      </div>
 
       <div className="srow"><span>상품 금액</span><span>{won(subtotal)}</span></div>
       {discount > 0 && (

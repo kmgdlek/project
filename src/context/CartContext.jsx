@@ -11,7 +11,8 @@ export function CartProvider({ children }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [coupon, setCoupon] = useState(null) // { code, discount_type, discount_value }
+  const [coupon, setCoupon] = useState(null) // 선택한 쿠폰 { code, discount_type, discount_value }
+  const [myCoupons, setMyCoupons] = useState([]) // 쿠폰함
   const pendingInserts = useRef(new Map()) // 임시 id -> 진행 중인 insert Promise(실제 id)
 
   const load = useCallback(async () => {
@@ -28,6 +29,18 @@ export function CartProvider({ children }) {
   }, [user])
 
   useEffect(() => { load() }, [load])
+
+  const loadCoupons = useCallback(async () => {
+    if (!supabase || !user) { setMyCoupons([]); setCoupon(null); return }
+    const { data, error } = await supabase
+      .from('user_coupons')
+      .select('claimed_at, coupon:coupons(code, description, discount_type, discount_value)')
+      .order('claimed_at')
+    if (error) return setError(error.message)
+    setMyCoupons(data.map((r) => r.coupon).filter(Boolean))
+  }, [user])
+
+  useEffect(() => { loadCoupons() }, [loadCoupons])
 
   const fail = (message) => { setError(message); load() }
 
@@ -88,15 +101,16 @@ export function CartProvider({ children }) {
     if (error) fail(error.message)
   }
 
-  const applyCoupon = async (code) => {
-    const { data, error } = await supabase.rpc('get_coupon', { p_code: code })
-    if (error) return { ok: false, message: error.message }
-    if (!data?.length) return { ok: false, message: '유효하지 않은 쿠폰입니다.' }
-    setCoupon(data[0])
-    return { ok: true, message: `쿠폰 ${data[0].code}이(가) 적용되었습니다.` }
+  const claimCoupon = async (c) => {
+    if (myCoupons.some((m) => m.code === c.code)) return { ok: false, message: '이미 받은 쿠폰입니다.' }
+    setMyCoupons((prev) => [...prev, c])
+    const { error } = await supabase.from('user_coupons').insert({ coupon_code: c.code })
+    if (error && error.code !== '23505') {
+      setMyCoupons((prev) => prev.filter((m) => m.code !== c.code))
+      return { ok: false, message: error.message }
+    }
+    return { ok: true, message: `${c.code} 쿠폰을 받았습니다.` }
   }
-
-  const removeCoupon = () => setCoupon(null)
 
   const subtotal = items.reduce((s, i) => s + i.quantity * i.product.price, 0)
   const rawDiscount = !coupon ? 0
@@ -108,10 +122,10 @@ export function CartProvider({ children }) {
 
   const value = useMemo(() => ({
     items, loading, error, drawerOpen, setDrawerOpen, addItem, setQuantity, removeItem,
-    clearCart, coupon, applyCoupon, removeCoupon,
+    clearCart, coupon, selectCoupon: setCoupon, myCoupons, claimCoupon,
     count: items.reduce((n, i) => n + i.quantity, 0),
     subtotal, discount, discountPercent, total: subtotal - discount,
-  }), [items, loading, error, drawerOpen, coupon]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [items, loading, error, drawerOpen, coupon, myCoupons]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
