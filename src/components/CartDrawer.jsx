@@ -55,7 +55,7 @@ export default function CartDrawer() {
         <div className="drawer-foot">
           <div className="total">합계 <strong>{total.toLocaleString('ko-KR')}원</strong></div>
           <button className="btn big" onClick={() => { close(); navigate('/cart') }} disabled={items.length === 0}>
-            장바구니 페이지로
+            결제하기
           </button>
         </div>
       </aside>
