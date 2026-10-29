@@ -8,6 +8,7 @@ import Signup from './pages/Signup.jsx'
 import Gallery from './pages/Gallery.jsx'
 import Shop from './pages/Shop.jsx'
 import Cart from './pages/Cart.jsx'
+import CartDrawer from './components/CartDrawer.jsx'
 
 function Protected({ children }) {
   const { user, loading } = useAuth()
@@ -21,6 +22,7 @@ export default function App() {
   return (
     <>
       <Navbar />
+      <CartDrawer />
       {!isSupabaseConfigured && (
         <div className="banner">
           Supabase 환경변수(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)가 설정되지 않았습니다. 로그인/회원가입이 동작하지 않습니다.

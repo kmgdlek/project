@@ -7,12 +7,11 @@ import ProductImage from '../components/ProductImage.jsx'
 
 export default function Shop() {
   const { user } = useAuth()
-  const { addItem } = useCart()
+  const { addItem, setDrawerOpen } = useCart()
   const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState('')
 
   useEffect(() => {
     if (!supabase) return setLoading(false)
@@ -26,10 +25,7 @@ export default function Shop() {
   const onAdd = async (p) => {
     if (!user) return navigate('/login', { state: { from: '/shop' } })
     const ok = await addItem(p.id)
-    if (ok) {
-      setToast(`${p.name}을(를) 장바구니에 담았습니다.`)
-      setTimeout(() => setToast(''), 2000)
-    }
+    if (ok) setDrawerOpen(true)
   }
 
   return (
@@ -50,7 +46,6 @@ export default function Shop() {
           </div>
         ))}
       </div>
-      {toast && <div className="toast">{toast}</div>}
     </main>
   )
 }

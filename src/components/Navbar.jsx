@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext.jsx'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
-  const { count } = useCart()
+  const { count, setDrawerOpen } = useCart()
   const navigate = useNavigate()
   const name = user?.user_metadata?.nickname || user?.email
 
@@ -20,7 +20,12 @@ export default function Navbar() {
         <NavLink to="/">홈</NavLink>
         <NavLink to="/gallery">갤러리</NavLink>
         <NavLink to="/shop">특산품</NavLink>
-        <NavLink to="/cart">장바구니{count > 0 && <span className="badge">{count}</span>}</NavLink>
+        <button
+          className="navbtn"
+          onClick={() => (user ? setDrawerOpen(true) : navigate('/login', { state: { from: '/shop' } }))}
+        >
+          장바구니{count > 0 && <span className="badge">{count}</span>}
+        </button>
         {user ? (
           <>
             <span className="who">{name}님</span>

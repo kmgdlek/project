@@ -9,6 +9,7 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const load = useCallback(async () => {
     if (!supabase || !user) return setItems([])
@@ -52,10 +53,10 @@ export function CartProvider({ children }) {
   }
 
   const value = useMemo(() => ({
-    items, loading, error, addItem, setQuantity, removeItem,
+    items, loading, error, drawerOpen, setDrawerOpen, addItem, setQuantity, removeItem,
     count: items.reduce((n, i) => n + i.quantity, 0),
     total: items.reduce((s, i) => s + i.quantity * i.product.price, 0),
-  }), [items, loading, error]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [items, loading, error, drawerOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
