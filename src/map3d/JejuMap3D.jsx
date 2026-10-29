@@ -136,7 +136,7 @@ export default function JejuMap3D() {
     const onMove = (e) => {
       const s = pick(e)
       const tip = tipRef.current
-      renderer.domElement.style.cursor = s ? 'pointer' : 'grab'
+      renderer.domElement.style.cursor = s ? 'pointer' : tourRef.current ? 'default' : 'grab'
       if (!tip) return
       if (s) {
         tip.textContent = s.name
@@ -162,11 +162,8 @@ export default function JejuMap3D() {
       const target = new THREE.Vector3(s.x, s.y, s.z)
       fly = { target, pos: target.clone().add(new THREE.Vector3(0, 8, 11)) }
     }
-    // 사용자가 조작하면 투어를 잠시 멈췄다가 3초 뒤 다시 돈다
-    let paused = false
-    let pauseTimer
-    controls.addEventListener('start', () => { fly = null; paused = true; clearTimeout(pauseTimer) })
-    controls.addEventListener('end', () => { pauseTimer = setTimeout(() => { paused = false }, 3000) })
+    // 투어 중에는 마우스 조작을 막고, 사용자가 직접 조작을 시작하면 이동 애니메이션을 취소한다
+    controls.addEventListener('start', () => { fly = null })
 
     api.current = {
       layers,
@@ -184,7 +181,8 @@ export default function JejuMap3D() {
         camera.position.lerp(fly.pos, 0.07)
         if (camera.position.distanceTo(fly.pos) < 0.2) fly = null
       }
-      controls.autoRotate = tourRef.current && !paused && !fly
+      controls.enabled = !tourRef.current
+      controls.autoRotate = tourRef.current && !fly
       rotors.forEach((r) => { r.rotation.z += 0.04 })
       // 핀은 줌 거리에 맞춰 크기를 보정해 항상 일정한 크기로 보이게 한다
       for (const p of pins) {
@@ -198,7 +196,6 @@ export default function JejuMap3D() {
     loop2()
 
     return () => {
-      clearTimeout(pauseTimer)
       cancelAnimationFrame(raf)
       ro.disconnect()
       el.removeEventListener('pointermove', onMove)
@@ -279,7 +276,7 @@ export default function JejuMap3D() {
 
       <button className="map-btn tour" onClick={() => setTour((t) => !t)} aria-pressed={tour}>{tour ? '⏸ 투어 멈춤' : '▶ 드론 투어'}</button>
       <button className="map-btn" onClick={() => api.current.resetView?.()} title="처음 시점으로">⟲ 전체 보기</button>
-      <div className="map-hint">드래그 회전 · 휠 확대 · 우클릭 이동 · 높이 5배 과장, 위치는 개략적</div>
+      <div className="map-hint">{tour ? '드론 투어 중 · 핀을 누르면 확대 · 직접 조작하려면 "투어 멈춤"' : '드래그 회전 · 휠 확대 · 우클릭 이동 · 핀을 누르면 확대'}</div>
     </div>
   )
 }
