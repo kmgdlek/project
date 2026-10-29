@@ -9,6 +9,7 @@ import Signup from './pages/Signup.jsx'
 import Gallery from './pages/Gallery.jsx'
 import Shop from './pages/Shop.jsx'
 import Cart from './pages/Cart.jsx'
+import Checkout from './pages/Checkout.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
 
 const JejuMap3D = lazy(() => import('./map3d/JejuMap3D.jsx'))
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/cart" element={<Protected><Cart /></Protected>} />
         <Route path="/map3d" element={<Suspense fallback={<p className="center">3D 지도를 불러오는 중…</p>}><JejuMap3D /></Suspense>} />
+        <Route path="/checkout" element={<Protected><Checkout /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <footer className="footer">

@@ -101,6 +101,13 @@ export function CartProvider({ children }) {
     if (error) fail(error.message)
   }
 
+  // 주문이 끝나면 서버가 장바구니와 사용한 쿠폰을 비웠으므로 화면 상태도 맞춘다
+  const afterOrder = async () => {
+    setItems([])
+    setCoupon(null)
+    await loadCoupons()
+  }
+
   const claimCoupon = async (c) => {
     if (myCoupons.some((m) => m.code === c.code)) return { ok: false, message: '이미 받은 쿠폰입니다.' }
     setMyCoupons((prev) => [...prev, c])
@@ -122,7 +129,7 @@ export function CartProvider({ children }) {
 
   const value = useMemo(() => ({
     items, loading, error, drawerOpen, setDrawerOpen, addItem, setQuantity, removeItem,
-    clearCart, coupon, selectCoupon: setCoupon, myCoupons, claimCoupon,
+    clearCart, afterOrder, coupon, selectCoupon: setCoupon, myCoupons, claimCoupon,
     count: items.reduce((n, i) => n + i.quantity, 0),
     subtotal, discount, discountPercent, total: subtotal - discount,
   }), [items, loading, error, drawerOpen, coupon, myCoupons]) // eslint-disable-line react-hooks/exhaustive-deps

@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import ProductImage from '../components/ProductImage.jsx'
 import CartSummary from '../components/CartSummary.jsx'
 
 export default function Cart() {
+  const navigate = useNavigate()
   const { items, loading, error, setQuantity, removeItem, clearCart } = useCart()
 
   return (
@@ -36,6 +37,7 @@ export default function Cart() {
         <div className="summary-wrap">
           <button className="btn ghost" onClick={() => window.confirm('장바구니를 모두 비울까요?') && clearCart()}>장바구니 비우기</button>
           <CartSummary />
+          <button className="btn big" onClick={() => navigate('/checkout')}>결제하기</button>
         </div>
       )}
     </main>

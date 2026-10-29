@@ -60,7 +60,7 @@ export default function CartDrawer() {
 
         <div className="drawer-foot">
           <CartSummary />
-          <button className="btn big" onClick={() => { close(); navigate('/cart') }} disabled={items.length === 0}>
+          <button className="btn big" onClick={() => { close(); navigate('/checkout') }} disabled={items.length === 0}>
             결제하기
           </button>
         </div>
