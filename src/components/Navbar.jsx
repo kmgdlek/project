@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCart } from '../context/CartContext.jsx'
+import CouponMenu from './CouponMenu.jsx'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
@@ -20,6 +21,7 @@ export default function Navbar() {
         <NavLink to="/">홈</NavLink>
         <NavLink to="/gallery">갤러리</NavLink>
         <NavLink to="/shop">특산품</NavLink>
+        <CouponMenu />
         <button
           className="navbtn"
           onClick={() => (user ? setDrawerOpen(true) : navigate('/login', { state: { from: '/shop' } }))}
