@@ -37,19 +37,19 @@ export default function JejuMap3D() {
     const mount = mountRef.current
     const scene = new THREE.Scene()
     scene.background = new THREE.Color(sky)
-    scene.fog = new THREE.Fog(sky, 110, 300) // 먼 바다가 수평선으로 자연스럽게 사라짐
+    scene.fog = new THREE.Fog(sky, 170, 440) // 먼 바다가 수평선으로 자연스럽게 사라짐
 
     const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 600)
     camera.position.set(0, 46, 58)
 
     const renderer = new THREE.WebGLRenderer({ antialias: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 760 ? 1.5 : 2)) // 모바일은 부하를 줄인다
     mount.appendChild(renderer.domElement)
 
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.minDistance = 6
-    controls.maxDistance = 130
+    controls.maxDistance = 280
     controls.maxPolarAngle = Math.PI * 0.47
     controls.target.set(0, 0, 0)
     controls.autoRotateSpeed = 0.45
@@ -131,6 +131,12 @@ export default function JejuMap3D() {
     const ro = new ResizeObserver(resize)
     ro.observe(mount)
     resize()
+    // 세로로 긴 화면(휴대폰)에서는 섬이 잘리지 않도록 카메라를 더 멀리 둔다
+    const home = () => {
+      const f = camera.aspect < 1 ? Math.min(1.3 / camera.aspect, 2.8) : 1
+      return new THREE.Vector3(0, 46 * f, 58 * f)
+    }
+    camera.position.copy(home())
 
     // 호버/클릭 선택
     const ray = new THREE.Raycaster()
@@ -184,7 +190,7 @@ export default function JejuMap3D() {
       flyTo,
       select: (s) => { setSelected(s); flyTo(s) },
       highlight: (id) => { selId = id },
-      resetView: () => { fly = { target: new THREE.Vector3(0, 0, 0), pos: new THREE.Vector3(0, 46, 58) } },
+      resetView: () => { fly = { target: new THREE.Vector3(0, 0, 0), pos: home() } },
     }
 
     let raf
