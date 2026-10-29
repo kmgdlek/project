@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import ProductImage from '../components/ProductImage.jsx'
+import CartSummary from '../components/CartSummary.jsx'
 
 export default function Cart() {
-  const { items, loading, error, setQuantity, removeItem, total } = useCart()
+  const { items, loading, error, setQuantity, removeItem, clearCart } = useCart()
 
   return (
     <main className="section">
@@ -32,8 +33,9 @@ export default function Cart() {
         ))}
       </ul>
       {items.length > 0 && (
-        <div className="total">
-          합계 <strong>{total.toLocaleString('ko-KR')}원</strong>
+        <div className="summary-wrap">
+          <button className="btn ghost" onClick={() => window.confirm('장바구니를 모두 비울까요?') && clearCart()}>장바구니 비우기</button>
+          <CartSummary />
         </div>
       )}
     </main>

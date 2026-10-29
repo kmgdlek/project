@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCart } from '../context/CartContext.jsx'
 import ProductImage from './ProductImage.jsx'
+import CartSummary from './CartSummary.jsx'
 
 // 오른쪽에서 슬라이드로 열리는 장바구니 패널
 export default function CartDrawer() {
   const { user } = useAuth()
-  const { items, loading, error, drawerOpen, setDrawerOpen, setQuantity, removeItem, total } = useCart()
+  const { items, loading, error, drawerOpen, setDrawerOpen, setQuantity, removeItem, clearCart } = useCart()
   const navigate = useNavigate()
   const close = () => setDrawerOpen(false)
 
@@ -26,7 +27,12 @@ export default function CartDrawer() {
       <aside className={`drawer ${drawerOpen ? 'open' : ''}`} aria-hidden={!drawerOpen} aria-label="장바구니">
         <div className="drawer-head">
           <h3>장바구니</h3>
-          <button className="x" onClick={close} aria-label="닫기">✕</button>
+          <div className="head-actions">
+            {items.length > 0 && (
+              <button className="linkbtn" onClick={() => window.confirm('장바구니를 모두 비울까요?') && clearCart()}>비우기</button>
+            )}
+            <button className="x" onClick={close} aria-label="닫기">✕</button>
+          </div>
         </div>
 
         <div className="drawer-body">
@@ -53,7 +59,7 @@ export default function CartDrawer() {
         </div>
 
         <div className="drawer-foot">
-          <div className="total">합계 <strong>{total.toLocaleString('ko-KR')}원</strong></div>
+          <CartSummary />
           <button className="btn big" onClick={() => { close(); navigate('/cart') }} disabled={items.length === 0}>
             결제하기
           </button>

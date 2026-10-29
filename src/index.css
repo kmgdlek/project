@@ -78,3 +78,15 @@ a { color: var(--sea); }
 .del { margin-left: auto; background: none; border: 0; color: #b91c1c; cursor: pointer; width: auto !important; border-radius: 0 !important; }
 .drawer-foot { padding: 1rem 1.2rem; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: .8rem; }
 .drawer-foot .total { margin: 0; font-size: 1.1rem; }
+.head-actions { display: flex; align-items: center; gap: .8rem; }
+.linkbtn { background: none; border: 0; color: #b91c1c; cursor: pointer; font: inherit; font-size: .9rem; padding: 0; }
+.summary { display: flex; flex-direction: column; gap: .5rem; }
+.coupon { display: flex; gap: .5rem; align-items: center; }
+.coupon input { flex: 1; padding: .5rem .7rem; border: 1px solid var(--line); border-radius: 8px; font: inherit; text-transform: uppercase; min-width: 0; }
+.coupon.applied { justify-content: space-between; background: #fff7ed; border: 1px dashed var(--tang); border-radius: 8px; padding: .5rem .7rem; }
+.srow { display: flex; justify-content: space-between; }
+.srow.disc { color: #dc2626; font-weight: 600; }
+.srow.final { font-size: 1.2rem; border-top: 1px solid var(--line); padding-top: .6rem; margin-top: .2rem; }
+.ok { color: #15803d; margin: 0; font-size: .9rem; }
+.summary-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 1rem; margin-top: 1.5rem; }
+.summary-wrap .summary { width: min(360px, 100%); }

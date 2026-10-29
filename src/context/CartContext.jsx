@@ -11,6 +11,7 @@ export function CartProvider({ children }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [coupon, setCoupon] = useState(null) // { code, discount_type, discount_value }
   const pendingInserts = useRef(new Map()) // 임시 id -> 진행 중인 insert Promise(실제 id)
 
   const load = useCallback(async () => {
@@ -80,11 +81,37 @@ export function CartProvider({ children }) {
     if (error) fail(error.message)
   }
 
+  const clearCart = async () => {
+    setItems([])
+    setCoupon(null)
+    const { error } = await supabase.from('cart_items').delete().eq('user_id', user.id)
+    if (error) fail(error.message)
+  }
+
+  const applyCoupon = async (code) => {
+    const { data, error } = await supabase.rpc('get_coupon', { p_code: code })
+    if (error) return { ok: false, message: error.message }
+    if (!data?.length) return { ok: false, message: '유효하지 않은 쿠폰입니다.' }
+    setCoupon(data[0])
+    return { ok: true, message: `쿠폰 ${data[0].code}이(가) 적용되었습니다.` }
+  }
+
+  const removeCoupon = () => setCoupon(null)
+
+  const subtotal = items.reduce((s, i) => s + i.quantity * i.product.price, 0)
+  const rawDiscount = !coupon ? 0
+    : coupon.discount_type === 'percent'
+      ? Math.floor((subtotal * coupon.discount_value) / 100)
+      : coupon.discount_value
+  const discount = Math.min(rawDiscount, subtotal)
+  const discountPercent = subtotal ? Math.round((discount / subtotal) * 100) : 0
+
   const value = useMemo(() => ({
     items, loading, error, drawerOpen, setDrawerOpen, addItem, setQuantity, removeItem,
+    clearCart, coupon, applyCoupon, removeCoupon,
     count: items.reduce((n, i) => n + i.quantity, 0),
-    total: items.reduce((s, i) => s + i.quantity * i.product.price, 0),
-  }), [items, loading, error, drawerOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+    subtotal, discount, discountPercent, total: subtotal - discount,
+  }), [items, loading, error, drawerOpen, coupon]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
