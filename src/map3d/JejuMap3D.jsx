@@ -7,7 +7,7 @@ import { makePin, makeTurbine, makeLighthouse, makeDolhareubang } from './models
 import { fetchImages } from '../lib/pixabay.js'
 
 const layerColor = Object.fromEntries(LAYERS.map((l) => [l.key, l.color]))
-const sky = 0xcfe8f3
+const sky = 0xeaf3f7
 
 export default function JejuMap3D() {
   const mountRef = useRef(null)
@@ -22,7 +22,6 @@ export default function JejuMap3D() {
     const mount = mountRef.current
     const scene = new THREE.Scene()
     scene.background = new THREE.Color(sky)
-    scene.fog = new THREE.Fog(sky, 90, 230)
 
     const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 600)
     camera.position.set(0, 46, 58)
@@ -55,8 +54,8 @@ export default function JejuMap3D() {
     // 올레길: 해안선을 따라 도는 경로
     const loop = coastLoop()
     const olleTube = new THREE.Mesh(
-      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(loop, true, 'catmullrom', 0.5), 700, 0.1, 6, true),
-      new THREE.MeshStandardMaterial({ color: layerColor.olle, emissive: layerColor.olle, emissiveIntensity: 0.3 }),
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(loop, true, 'catmullrom', 0.5), 700, 0.065, 6, true),
+      new THREE.MeshStandardMaterial({ color: layerColor.olle, emissive: layerColor.olle, emissiveIntensity: 0.3, transparent: true, opacity: 0.9 }),
     )
     layers.olle.add(olleTube)
 
@@ -99,7 +98,6 @@ export default function JejuMap3D() {
       }
       const pin = makePin(layerColor[s.layer])
       pin.position.set(s.x, s.y + (LIFT[s.layer] ?? 0), s.z)
-      pin.scale.setScalar(1.5)
       pin.userData.spot = s
       layers[s.layer].add(pin)
       pins.push(pin)
@@ -156,6 +154,7 @@ export default function JejuMap3D() {
 
     // 카메라 이동
     let fly = null
+    let selId = -1
     const flyTo = (s) => {
       const target = new THREE.Vector3(s.x, s.y, s.z)
       fly = { target, pos: target.clone().add(new THREE.Vector3(0, 14, 20)) }
@@ -166,7 +165,8 @@ export default function JejuMap3D() {
       layers,
       flyTo,
       select: (s) => { setSelected(s); flyTo(s) },
-      highlight: (id) => pins.forEach((p) => p.scale.setScalar(p.userData.spot.id === id ? 2.4 : 1.5)),
+      highlight: (id) => { selId = id },
+      resetView: () => { fly = { target: new THREE.Vector3(0, 0, 0), pos: new THREE.Vector3(0, 46, 58) } },
     }
 
     let raf
@@ -178,6 +178,12 @@ export default function JejuMap3D() {
         if (camera.position.distanceTo(fly.pos) < 0.2) fly = null
       }
       rotors.forEach((r) => { r.rotation.z += 0.04 })
+      // 핀은 줌 거리에 맞춰 크기를 보정해 항상 일정한 크기로 보이게 한다
+      for (const p of pins) {
+        const k = THREE.MathUtils.clamp(camera.position.distanceTo(p.position) / 60, 0.45, 1.4)
+        p.scale.setScalar(k * (p.userData.spot.id === selId ? 1.6 : 1))
+        p.children[2].quaternion.copy(camera.quaternion)
+      }
       controls.update()
       renderer.render(scene, camera)
     }
@@ -233,7 +239,7 @@ export default function JejuMap3D() {
             </button>
           ))}
         </div>
-        <details className="map-list" open>
+        <details className="map-list">
           <summary>장소 목록 ({shown.length})</summary>
           <ul>
             {shown.map((s) => (
@@ -260,7 +266,8 @@ export default function JejuMap3D() {
         </div>
       )}
 
-      <div className="map-hint">드래그: 회전 · 휠/핀치: 확대 · 우클릭 드래그: 이동 · 지형 높이는 약 5배 과장, 위치는 개략적입니다.</div>
+      <button className="map-btn" onClick={() => api.current.resetView?.()} title="처음 시점으로">⟲ 전체 보기</button>
+      <div className="map-hint">드래그 회전 · 휠 확대 · 우클릭 이동 · 높이 5배 과장, 위치는 개략적</div>
     </div>
   )
 }

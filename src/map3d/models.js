@@ -4,16 +4,15 @@ const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, rough
 
 export function makePin(color) {
   const g = new THREE.Group()
-  const m = mat(color, { emissive: color, emissiveIntensity: 0.25 })
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.9, 12), m)
-  cone.rotation.x = Math.PI
-  cone.position.y = 0.45
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.36, 18, 14), m)
+  const m = mat(color, { emissive: color, emissiveIntensity: 0.2 })
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.0, 8), mat('#ffffff'))
+  stem.position.y = 0.5
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 16), m)
   ball.position.y = 1.15
-  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), mat('#ffffff'))
-  dot.position.y = 1.15
-  dot.position.z = 0.28
-  g.add(cone, ball, dot)
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.34, 0.42, 24), new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.DoubleSide }))
+  ring.position.y = 1.15
+  ring.userData.billboard = true
+  g.add(stem, ball, ring)
   return g
 }
 
