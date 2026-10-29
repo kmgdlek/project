@@ -24,8 +24,8 @@ export default function Shop() {
 
   const onAdd = async (p) => {
     if (!user) return navigate('/login', { state: { from: '/shop' } })
-    const ok = await addItem(p.id)
-    if (ok) setDrawerOpen(true)
+    setDrawerOpen(true) // 서버 응답을 기다리지 않고 즉시 패널을 열고 화면에 반영
+    addItem(p)
   }
 
   return (
