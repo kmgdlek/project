@@ -217,7 +217,10 @@ export default function JejuMap3D() {
         const k = THREE.MathUtils.clamp(camera.position.distanceTo(l.position) / 60, 0.5, 1.6) * l.userData.base
         l.scale.set(k, k / 4, 1)
       }
-      controls.enabled = !tourRef.current
+      // 투어 중에는 확대/축소만 허용하고, 회전과 이동은 막는다
+      controls.enableRotate = !tourRef.current
+      controls.enablePan = !tourRef.current
+      controls.enableZoom = true
       controls.autoRotate = tourRef.current && !fly
       rotors.forEach((r) => { r.rotation.z += 0.04 })
       // 핀은 줌 거리에 맞춰 크기를 보정해 항상 일정한 크기로 보이게 한다
@@ -315,7 +318,7 @@ export default function JejuMap3D() {
       <div className="map-credit">
         사진 출처: <a href="https://pixabay.com" target="_blank" rel="noreferrer">Pixabay</a>
       </div>
-      <div className="map-hint">{tour ? '드론 투어 중 · 핀을 누르면 확대 · 직접 조작하려면 "투어 멈춤"' : '드래그 회전 · 휠 확대 · 우클릭 이동 · 핀을 누르면 확대'}</div>
+      <div className="map-hint">{tour ? '드론 투어 중 · 휠/핀치로 확대·축소 · 핀을 누르면 이동 · 회전은 "투어 멈춤" 후' : '드래그 회전 · 휠 확대 · 우클릭 이동 · 핀을 누르면 확대'}</div>
     </div>
   )
 }
