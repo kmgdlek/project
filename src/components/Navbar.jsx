@@ -1,8 +1,10 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useCart } from '../context/CartContext.jsx'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
+  const { count } = useCart()
   const navigate = useNavigate()
   const name = user?.user_metadata?.nickname || user?.email
 
@@ -17,6 +19,8 @@ export default function Navbar() {
       <nav>
         <NavLink to="/">홈</NavLink>
         <NavLink to="/gallery">갤러리</NavLink>
+        <NavLink to="/shop">특산품</NavLink>
+        <NavLink to="/cart">장바구니{count > 0 && <span className="badge">{count}</span>}</NavLink>
         {user ? (
           <>
             <span className="who">{name}님</span>

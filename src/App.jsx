@@ -6,6 +6,8 @@ import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Gallery from './pages/Gallery.jsx'
+import Shop from './pages/Shop.jsx'
+import Cart from './pages/Cart.jsx'
 
 function Protected({ children }) {
   const { user, loading } = useAuth()
@@ -29,6 +31,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/gallery" element={<Protected><Gallery /></Protected>} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/cart" element={<Protected><Cart /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <footer className="footer">

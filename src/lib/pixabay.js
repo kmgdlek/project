@@ -18,6 +18,7 @@ export function useImages(q, perPage = 12) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!q) { setLoading(false); return }
     let alive = true
     setLoading(true)
     setError(null)
