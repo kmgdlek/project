@@ -23,6 +23,7 @@ function Protected({ children }) {
 }
 
 export default function App() {
+  const { pathname } = useLocation()
   return (
     <>
       <Navbar />
@@ -43,9 +44,9 @@ export default function App() {
         <Route path="/checkout" element={<Protected><Checkout /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <footer className="footer">
+      {pathname !== '/map3d' && <footer className="footer">
         사진 출처: <a href="https://pixabay.com" target="_blank" rel="noreferrer">Pixabay</a>
-      </footer>
+      </footer>}
     </>
   )
 }

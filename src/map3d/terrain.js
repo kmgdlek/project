@@ -72,7 +72,7 @@ export function snapToLand(x, z, min = 0.22) {
 }
 
 const STOPS = [
-  [-3, '#1d6f8e'], [-1.2, '#3b9bb8'], [0, '#7cc3dc'], [0.1, '#d9c98f'], [0.28, '#e3d59f'], [0.5, '#8ec06c'],
+  [-3, '#2b6fa8'], [-2, '#3a8fc0'], [-1, '#58b3d6'], [-0.3, '#8fd8e4'], [0.05, '#b8eeea'], [0.1, '#d9c98f'], [0.28, '#e3d59f'], [0.5, '#8ec06c'],
   [1.3, '#5fa04f'], [3, '#3f7a3c'], [4.6, '#7d7d58'], [5.6, '#9a9488'], [7.2, '#d8d4ca'],
 ].map(([h, c]) => [h, new THREE.Color(c)])
 
@@ -97,8 +97,8 @@ export function buildTerrain() {
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i)
     const z = pos.getZ(i)
-    const h = Math.max(heightAt(x, z), -2.85)
-    pos.setY(i, h)
+    const h = Math.max(heightAt(x, z), -3)
+    pos.setY(i, h < SEA_LEVEL ? SEA_LEVEL + (h - SEA_LEVEL) * 0.12 : h) // 수면 아래는 완만한 대륙붕
     colorAt(h, c)
     if (Math.hypot(x - HALLA.x, z - HALLA.z) < 0.5) c.copy(lake)
     colors.set([c.r, c.g, c.b], i * 3)
@@ -108,18 +108,19 @@ export function buildTerrain() {
   return new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 }))
 }
 
-// 디오라마: 투명한 바닷물 슬랩 + 어두운 받침대 (지도 가장자리가 깔끔하게 잘린다)
-export function buildSea() {
-  const g = new THREE.Group()
-  const water = new THREE.Mesh(
-    new THREE.BoxGeometry(96, 3 + SEA_LEVEL, 56),
-    new THREE.MeshPhongMaterial({ color: 0x2aa3d6, transparent: true, opacity: 0.55, shininess: 90, depthWrite: false }),
-  )
-  water.position.y = (SEA_LEVEL - 3) / 2
-  const base = new THREE.Mesh(new THREE.BoxGeometry(98, 0.8, 58), new THREE.MeshStandardMaterial({ color: '#16303d', roughness: 0.7 }))
-  base.position.y = -3.4
-  g.add(water, base)
-  return g
+// 바다: 지형 바깥을 끝없이 이어지는 평면으로 덮어 가장자리가 보이지 않게 한다.
+// 지형 가장자리의 수심 색(#2b6fa8)과 같은 색·같은 재질이라 이음새가 드러나지 않는다.
+export function buildOcean() {
+  const edgeY = SEA_LEVEL + (-3 - SEA_LEVEL) * 0.12
+  const shape = new THREE.Shape()
+  shape.moveTo(-900, -900); shape.lineTo(900, -900); shape.lineTo(900, 900); shape.lineTo(-900, 900); shape.lineTo(-900, -900)
+  const hole = new THREE.Path()
+  hole.moveTo(-48, -28); hole.lineTo(-48, 28); hole.lineTo(48, 28); hole.lineTo(48, -28); hole.lineTo(-48, -28)
+  shape.holes.push(hole)
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshStandardMaterial({ color: '#2b6fa8', roughness: 0.95, metalness: 0 }))
+  m.rotation.x = -Math.PI / 2
+  m.position.y = edgeY
+  return m
 }
 
 // 해안선을 따라 도는 올레길(개념 경로)

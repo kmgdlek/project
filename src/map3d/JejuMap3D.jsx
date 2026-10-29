@@ -1,15 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { buildTerrain, buildSea, coastLoop, tangerineSpots, heightAt, SEA_LEVEL } from './terrain.js'
+import { buildTerrain, buildOcean, coastLoop, tangerineSpots, heightAt, SEA_LEVEL } from './terrain.js'
 import { LAYERS, SPOTS, LIFT } from './data.js'
 import { makePin, makeTurbine, makeLighthouse, makeDolhareubang } from './models.js'
 import { fetchImages } from '../lib/pixabay.js'
 
 const layerColor = Object.fromEntries(LAYERS.map((l) => [l.key, l.color]))
-const sky = 0xeaf3f7
+const sky = 0xdbeaf3
 
 export default function JejuMap3D() {
+  const pageRef = useRef(null)
   const mountRef = useRef(null)
   const tipRef = useRef(null)
   const api = useRef({})
@@ -19,11 +20,24 @@ export default function JejuMap3D() {
   const [tour, setTour] = useState(true) // 드론 투어(자동 회전)
   const tourRef = useRef(true)
 
+  // 페이지 스크롤이 생기지 않게 지도를 화면 남은 높이에 딱 맞춘다
+  useLayoutEffect(() => {
+    const el = pageRef.current
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.scrollTo(0, 0)
+    const fit = () => { el.style.height = `${Math.max(window.innerHeight - el.getBoundingClientRect().top, 420)}px` }
+    fit()
+    window.addEventListener('resize', fit)
+    return () => { window.removeEventListener('resize', fit); document.body.style.overflow = prev }
+  }, [])
+
   // 장면 구성 (한 번만)
   useEffect(() => {
     const mount = mountRef.current
     const scene = new THREE.Scene()
     scene.background = new THREE.Color(sky)
+    scene.fog = new THREE.Fog(sky, 110, 300) // 먼 바다가 수평선으로 자연스럽게 사라짐
 
     const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 600)
     camera.position.set(0, 46, 58)
@@ -45,7 +59,7 @@ export default function JejuMap3D() {
     sun.position.set(30, 50, 20)
     scene.add(sun)
 
-    scene.add(buildTerrain(), buildSea())
+    scene.add(buildTerrain(), buildOcean())
 
     // 레이어별 그룹
     const layers = {}
@@ -234,7 +248,7 @@ export default function JejuMap3D() {
   const shown = SPOTS.filter((s) => visible[s.layer])
 
   return (
-    <div className="map-page">
+    <div className="map-page" ref={pageRef}>
       <div className="map-canvas" ref={mountRef} />
       <div className="map-tip" ref={tipRef} />
 
@@ -276,6 +290,9 @@ export default function JejuMap3D() {
 
       <button className="map-btn tour" onClick={() => setTour((t) => !t)} aria-pressed={tour}>{tour ? '⏸ 투어 멈춤' : '▶ 드론 투어'}</button>
       <button className="map-btn" onClick={() => api.current.resetView?.()} title="처음 시점으로">⟲ 전체 보기</button>
+      <div className="map-credit">
+        사진 출처: <a href="https://pixabay.com" target="_blank" rel="noreferrer">Pixabay</a>
+      </div>
       <div className="map-hint">{tour ? '드론 투어 중 · 핀을 누르면 확대 · 직접 조작하려면 "투어 멈춤"' : '드래그 회전 · 휠 확대 · 우클릭 이동 · 핀을 누르면 확대'}</div>
     </div>
   )
