@@ -155,7 +155,7 @@ export function coastLoop(level = 0.5, n = 360) {
   const pts = []
   for (let i = 0; i < n; i++) {
     const t = (i / n) * Math.PI * 2
-    for (let k = 1.4; k > 0.2; k -= 0.005) {
+    for (let k = 1.06; k > 0.2; k -= 0.005) { // 1.06부터 시작해 우도·비양도 같은 부속 섬은 건너뛴다
       const u = 37 * k * Math.cos(t)
       const v = 15.5 * k * Math.sin(t)
       const x = u * CA - v * SA

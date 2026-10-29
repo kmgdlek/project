@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { buildTerrain, buildOcean, coastLoop, tangerineSpots, heightAt, SEA_LEVEL } from './terrain.js'
 import { LAYERS, SPOTS, LIFT } from './data.js'
 import { makePin, makeTurbine, makeLighthouse, makeDolhareubang } from './models.js'
+import { buildWorld, buildRegionLabels, buildFoam, buildForest, buildClouds, buildBoats } from './extras.js'
 import { fetchImages } from '../lib/pixabay.js'
 
 const layerColor = Object.fromEntries(LAYERS.map((l) => [l.key, l.color]))
@@ -39,7 +40,7 @@ export default function JejuMap3D() {
     scene.background = new THREE.Color(sky)
     scene.fog = new THREE.Fog(sky, 170, 440) // 먼 바다가 수평선으로 자연스럽게 사라짐
 
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 600)
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 1500)
     camera.position.set(0, 46, 58)
 
     const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -67,6 +68,14 @@ export default function JejuMap3D() {
       layers[l.key] = new THREE.Group()
       scene.add(layers[l.key])
     }
+
+    // 장식: 주변 국가, 지명, 파도 거품, 숲, 구름, 배
+    layers.world.add(buildWorld())
+    const regionLabels = buildRegionLabels()
+    regionLabels.forEach((l) => layers.label.add(l))
+    const clouds = buildClouds()
+    const boats = buildBoats()
+    scene.add(buildFoam(), buildForest(), clouds.group, boats.group)
 
     // 올레길: 해안선을 따라 도는 경로
     const loop = coastLoop()
@@ -200,6 +209,13 @@ export default function JejuMap3D() {
         controls.target.lerp(fly.target, 0.07)
         camera.position.lerp(fly.pos, 0.07)
         if (camera.position.distanceTo(fly.pos) < 0.2) fly = null
+      }
+      const t = performance.now() / 1000
+      clouds.update(t)
+      boats.update(t)
+      for (const l of regionLabels) {
+        const k = THREE.MathUtils.clamp(camera.position.distanceTo(l.position) / 60, 0.5, 1.6) * l.userData.base
+        l.scale.set(k, k / 4, 1)
       }
       controls.enabled = !tourRef.current
       controls.autoRotate = tourRef.current && !fly

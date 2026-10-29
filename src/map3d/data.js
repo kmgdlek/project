@@ -10,6 +10,8 @@ export const LAYERS = [
   { key: 'wind', label: '풍력발전기', color: '#10b981' },
   { key: 'lighthouse', label: '등대', color: '#eab308' },
   { key: 'dolhareubang', label: '돌하르방', color: '#6b7280' },
+  { key: 'label', label: '지명', color: '#475569' },
+  { key: 'world', label: '주변 국가', color: '#94a3b8' },
 ]
 
 // [layer, name, lon, lat, desc, pixabay query]
