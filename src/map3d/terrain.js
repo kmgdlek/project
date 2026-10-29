@@ -72,9 +72,35 @@ export function snapToLand(x, z, min = 0.22) {
 }
 
 const STOPS = [
-  [-3, '#2b6fa8'], [-2, '#3a8fc0'], [-1, '#58b3d6'], [-0.3, '#8fd8e4'], [0.05, '#b8eeea'], [0.1, '#d9c98f'], [0.28, '#e3d59f'], [0.5, '#8ec06c'],
-  [1.3, '#5fa04f'], [3, '#3f7a3c'], [4.6, '#7d7d58'], [5.6, '#9a9488'], [7.2, '#d8d4ca'],
+  [-3, '#2b6fa8'], [-2, '#3a8fc0'], [-1, '#58b3d6'], [-0.3, '#8fd8e4'], [0.05, '#b8eeea'],
+  [0.1, '#eadfb4'], [0.3, '#dccf9a'], [0.55, '#a9c76a'], [1.4, '#78a54c'], [2.6, '#4d8341'],
+  [3.6, '#6d7b46'], [4.6, '#8e7c5e'], [5.6, '#a58a76'], [7.2, '#ece7de'],
 ].map(([h, c]) => [h, new THREE.Color(c)])
+
+// 땅 위에 얹는 색: 현무암 해안, 밭 모자이크, 억새 들판
+const BASALT = new THREE.Color('#3b3b42')
+const FIELDS = ['#b9d36a', '#e6cf63', '#9ccc65', '#d9a066', '#f2d64b', '#7fb85a', '#c8dc7a'].map((c) => new THREE.Color(c))
+const GRASS = new THREE.Color('#cdb862')
+const smooth = (a, b, t) => { const k = Math.min(Math.max((t - a) / (b - a), 0), 1); return k * k * (3 - 2 * k) }
+const hash = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v) }
+
+function landOverlay(h, x, z, c) {
+  // 현무암 해안: 해안선 바로 안쪽에 불규칙하게 검은 돌 띠
+  const rock = smooth(0.1, 0.16, h) * (1 - smooth(0.28, 0.5, h)) * Math.min(Math.max(noise(x * 1.1, z * 1.1) + 0.3, 0), 1)
+  c.lerp(BASALT, rock * 0.85)
+  // 밭: 저지대를 작은 구획으로 나눠 색을 달리한다
+  const field = smooth(0.45, 0.8, h) * (1 - smooth(1.5, 2.1, h))
+  if (field > 0) {
+    const fc = FIELDS[Math.floor(hash(Math.floor(x / 1.5), Math.floor(z / 1.2)) * FIELDS.length)]
+    c.lerp(fc, field * 0.75)
+  }
+  // 억새 들판: 중산간의 누런 초원 얼룩
+  const grass = smooth(0.8, 1.3, h) * (1 - smooth(2.6, 3.2, h)) * smooth(0.1, 0.9, noise(x * 0.6 + 5, z * 0.6 - 3))
+  c.lerp(GRASS, grass * 0.65)
+  // 숲: 중턱은 짙은 초록과 연한 초록이 얼룩지게
+  const forest = smooth(1.8, 2.6, h) * (1 - smooth(3.6, 4.4, h))
+  c.offsetHSL(0, 0, (noise(x * 2.1, z * 2.1) * 0.025) * forest)
+}
 
 function colorAt(h, out) {
   if (h <= STOPS[0][0]) return out.copy(STOPS[0][1])
@@ -100,6 +126,7 @@ export function buildTerrain() {
     const h = Math.max(heightAt(x, z), -3)
     pos.setY(i, h < SEA_LEVEL ? SEA_LEVEL + (h - SEA_LEVEL) * 0.12 : h) // 수면 아래는 완만한 대륙붕
     colorAt(h, c)
+    if (h >= SEA_LEVEL) landOverlay(h, x, z, c)
     if (Math.hypot(x - HALLA.x, z - HALLA.z) < 0.5) c.copy(lake)
     colors.set([c.r, c.g, c.b], i * 3)
   }
