@@ -20,6 +20,7 @@ export default function Navbar() {
       <nav>
         <NavLink to="/">홈</NavLink>
         <NavLink to="/gallery">갤러리</NavLink>
+        <NavLink to="/map3d">3D 지도</NavLink>
         <NavLink to="/shop">특산품</NavLink>
         <CouponMenu />
         <button
